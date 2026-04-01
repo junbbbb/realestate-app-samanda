@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import 'pretendard/dist/web/variable/pretendardvariable.css';
 import StyletronProvider from '@/components/StyletronProvider';
 import Sidebar from '@/components/Navigation';
 import LayoutMain from '@/components/LayoutMain';
@@ -15,17 +16,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head>
-        <style dangerouslySetInnerHTML={{ __html: `
-          @font-face {
-            font-family: 'Pretendard Variable';
-            font-weight: 45 920;
-            font-style: normal;
-            font-display: swap;
-            src: url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/packages/pretendard/dist/web/variable/woff2/PretendardVariable.woff2') format('woff2-variations');
-          }
-        `}} />
-      </head>
+      <head />
       <body
         style={{
           margin: 0,
