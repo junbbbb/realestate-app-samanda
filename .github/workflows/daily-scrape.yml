@@ -1,0 +1,25 @@
+name: Daily Scrape
+
+on:
+  schedule:
+    - cron: '0 19 * * *'  # UTC 19:00 = KST 04:00
+  workflow_dispatch:        # 수동 실행
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install requests
+
+      - name: Run daily scrape
+        run: python scripts/daily-scrape.py
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
