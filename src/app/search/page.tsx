@@ -1,13 +1,25 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
-import { useStyletron } from 'baseui';
 import { Select, Value } from 'baseui/select';
 import { Input } from 'baseui/input';
 import { Button } from 'baseui/button';
 import { Spinner } from 'baseui/spinner';
-import ListingCard from '@/components/ListingCard';
+import { FormControl } from 'baseui/form-control';
+import { HeadingXLarge, LabelSmall } from 'baseui/typography';
+import { Block } from 'baseui/block';
+import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
+import {
+  TableBuilder,
+  TableBuilderColumn,
+} from 'baseui/table-semantic';
+import { Tag, KIND, HIERARCHY } from 'baseui/tag';
+import { Search, ChevronDown, ChevronUp } from 'baseui/icon';
+import { StyledLink } from 'baseui/link';
 import { Listing } from '@/types/listing';
+import { useRouter } from 'next/navigation';
+import { formatPrice, TYPE_LABEL, TRADE_LABEL, STATUS_LABEL, STATUS_KIND } from '@/components/ListingCard';
+
 const TYPE_OPTIONS = [
   { label: '전체', id: '' },
   { label: '상가', id: 'store' },
@@ -34,7 +46,7 @@ const SORT_OPTIONS = [
 ];
 
 export default function SearchPage() {
-  const [css] = useStyletron();
+  const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
@@ -102,169 +114,246 @@ export default function SearchPage() {
   }, []);
 
   return (
-    <div className={css({ padding: '20px', maxWidth: '600px', margin: '0 auto' })}>
-      <h1 className={css({ fontSize: '24px', fontWeight: 700, marginBottom: '16px' })}>
+    <Block maxWidth="1200px">
+      <HeadingXLarge marginTop="0" marginBottom="24px">
         매물 검색
-      </h1>
+      </HeadingXLarge>
 
       {/* Search Bar */}
-      <div className={css({ display: 'flex', gap: '8px', marginBottom: '12px' })}>
-        <div className={css({ flex: 1 })}>
+      <Block display="flex" gridGap="12px" marginBottom="20px">
+        <Block flex="1">
           <Input
             value={keyword}
             onChange={(e) => setKeyword(e.currentTarget.value)}
             placeholder="주소, 설명 검색..."
             onKeyDown={(e) => e.key === 'Enter' && search(1)}
+            startEnhancer={<Search size={18} />}
           />
-        </div>
+        </Block>
         <Button onClick={() => search(1)}>검색</Button>
-      </div>
+      </Block>
 
       {/* Quick Filters */}
-      <div className={css({ display: 'flex', gap: '8px', marginBottom: '12px', flexWrap: 'wrap' })}>
-        <div className={css({ flex: '1 1 100px', minWidth: '100px' })}>
-          <Select
-            options={TYPE_OPTIONS}
-            value={typeFilter}
-            onChange={({ value }) => setTypeFilter(value)}
-            placeholder="유형"
-            clearable={false}
-            size="compact"
-          />
-        </div>
-        <div className={css({ flex: '1 1 100px', minWidth: '100px' })}>
-          <Select
-            options={TRADE_OPTIONS}
-            value={tradeFilter}
-            onChange={({ value }) => setTradeFilter(value)}
-            placeholder="거래"
-            clearable={false}
-            size="compact"
-          />
-        </div>
-        <div className={css({ flex: '1 1 100px', minWidth: '100px' })}>
-          <Select
-            options={SOURCE_OPTIONS}
-            value={sourceFilter}
-            onChange={({ value }) => setSourceFilter(value)}
-            placeholder="출처"
-            clearable={false}
-            size="compact"
-          />
-        </div>
-      </div>
+      <FlexGrid flexGridColumnCount={4} flexGridColumnGap="12px" marginBottom="16px">
+        <FlexGridItem>
+          <FormControl label="유형">
+            <Select
+              options={TYPE_OPTIONS}
+              value={typeFilter}
+              onChange={({ value }) => setTypeFilter(value)}
+              placeholder="전체"
+              clearable={false}
+              size="compact"
+            />
+          </FormControl>
+        </FlexGridItem>
+        <FlexGridItem>
+          <FormControl label="거래">
+            <Select
+              options={TRADE_OPTIONS}
+              value={tradeFilter}
+              onChange={({ value }) => setTradeFilter(value)}
+              placeholder="전체"
+              clearable={false}
+              size="compact"
+            />
+          </FormControl>
+        </FlexGridItem>
+        <FlexGridItem>
+          <FormControl label="출처">
+            <Select
+              options={SOURCE_OPTIONS}
+              value={sourceFilter}
+              onChange={({ value }) => setSourceFilter(value)}
+              placeholder="전체"
+              clearable={false}
+              size="compact"
+            />
+          </FormControl>
+        </FlexGridItem>
+        <FlexGridItem>
+          <FormControl label="정렬">
+            <Select
+              options={SORT_OPTIONS}
+              value={sortFilter}
+              onChange={({ value }) => {
+                setSortFilter(value);
+              }}
+              clearable={false}
+              size="compact"
+            />
+          </FormControl>
+        </FlexGridItem>
+      </FlexGrid>
 
       {/* Toggle Advanced Filters */}
       <Button
         onClick={() => setShowFilters(!showFilters)}
         kind="tertiary"
         size="compact"
-        overrides={{ BaseButton: { style: { marginBottom: '12px' } } }}
+        endEnhancer={() => showFilters ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+        overrides={{ BaseButton: { style: { marginBottom: '16px' } } }}
       >
-        {showFilters ? '필터 접기 ▲' : '상세 필터 ▼'}
+        {showFilters ? '필터 접기' : '상세 필터'}
       </Button>
 
       {showFilters && (
-        <div
-          className={css({
-            backgroundColor: '#fff',
-            borderRadius: '12px',
-            padding: '16px',
-            border: '1px solid #e0e0e0',
-            marginBottom: '16px',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '12px',
-          })}
+        <Block
+          backgroundColor="white"
+          padding="20px"
+          marginBottom="20px"
+          overrides={{
+            Block: {
+              style: {
+                border: '1px solid #e0e0e0',
+                borderRadius: '8px',
+              },
+            },
+          }}
         >
-          <div>
-            <label className={css({ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' })}>
-              가격 범위 (만원)
-            </label>
-            <div className={css({ display: 'flex', gap: '8px', alignItems: 'center' })}>
-              <Input value={priceMin} onChange={(e) => setPriceMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
-              <span>~</span>
-              <Input value={priceMax} onChange={(e) => setPriceMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
-            </div>
-          </div>
-          <div>
-            <label className={css({ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' })}>
-              면적 범위 (㎡)
-            </label>
-            <div className={css({ display: 'flex', gap: '8px', alignItems: 'center' })}>
-              <Input value={areaMin} onChange={(e) => setAreaMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
-              <span>~</span>
-              <Input value={areaMax} onChange={(e) => setAreaMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
-            </div>
-          </div>
-          <div>
-            <label className={css({ fontSize: '13px', color: '#666', marginBottom: '4px', display: 'block' })}>
-              층수 범위
-            </label>
-            <div className={css({ display: 'flex', gap: '8px', alignItems: 'center' })}>
-              <Input value={floorMin} onChange={(e) => setFloorMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
-              <span>~</span>
-              <Input value={floorMax} onChange={(e) => setFloorMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
-            </div>
-          </div>
-          <Button onClick={() => search(1)} size="compact">
-            필터 적용
-          </Button>
-        </div>
+          <FlexGrid flexGridColumnCount={3} flexGridColumnGap="16px" flexGridRowGap="8px">
+            <FlexGridItem>
+              <FormControl label="가격 범위 (만원)">
+                <Block display="flex" gridGap="8px" alignItems="center">
+                  <Input value={priceMin} onChange={(e) => setPriceMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
+                  <LabelSmall margin="0">~</LabelSmall>
+                  <Input value={priceMax} onChange={(e) => setPriceMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
+                </Block>
+              </FormControl>
+            </FlexGridItem>
+            <FlexGridItem>
+              <FormControl label="면적 범위 (㎡)">
+                <Block display="flex" gridGap="8px" alignItems="center">
+                  <Input value={areaMin} onChange={(e) => setAreaMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
+                  <LabelSmall margin="0">~</LabelSmall>
+                  <Input value={areaMax} onChange={(e) => setAreaMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
+                </Block>
+              </FormControl>
+            </FlexGridItem>
+            <FlexGridItem>
+              <FormControl label="층수 범위">
+                <Block display="flex" gridGap="8px" alignItems="center">
+                  <Input value={floorMin} onChange={(e) => setFloorMin(e.currentTarget.value)} placeholder="최소" size="compact" type="number" />
+                  <LabelSmall margin="0">~</LabelSmall>
+                  <Input value={floorMax} onChange={(e) => setFloorMax(e.currentTarget.value)} placeholder="최대" size="compact" type="number" />
+                </Block>
+              </FormControl>
+            </FlexGridItem>
+          </FlexGrid>
+          <Block marginTop="12px">
+            <Button onClick={() => search(1)} size="compact">
+              필터 적용
+            </Button>
+          </Block>
+        </Block>
       )}
 
-      {/* Sort */}
-      <div className={css({ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' })}>
-        <span className={css({ fontSize: '14px', color: '#666' })}>
-          총 {total}건
-        </span>
-        <div className={css({ width: '140px' })}>
-          <Select
-            options={SORT_OPTIONS}
-            value={sortFilter}
-            onChange={({ value }) => {
-              setSortFilter(value);
-              search(1);
-            }}
-            clearable={false}
-            size="compact"
-          />
-        </div>
-      </div>
+      {/* Results count */}
+      <Block display="flex" justifyContent="space-between" alignItems="center" marginBottom="12px">
+        <LabelSmall color="contentSecondary">총 {total}건</LabelSmall>
+      </Block>
 
-      {/* Results */}
+      {/* Table Results */}
       {loading ? (
-        <div className={css({ display: 'flex', justifyContent: 'center', padding: '40px' })}>
+        <Block display="flex" justifyContent="center" padding="40px">
           <Spinner />
-        </div>
+        </Block>
+      ) : listings.length > 0 ? (
+        <TableBuilder
+          data={listings}
+          overrides={{
+            Root: {
+              style: {
+                borderRadius: '8px',
+                overflow: 'hidden',
+              },
+            },
+            TableBodyRow: {
+              style: {
+                cursor: 'pointer',
+                ':hover': { backgroundColor: '#f5f5f5' },
+              },
+              props: {
+                onClick: (e: React.MouseEvent<HTMLTableRowElement>) => {
+                  const row = (e.currentTarget as HTMLTableRowElement);
+                  const id = row.dataset.id;
+                  if (id) router.push(`/detail/${id}`);
+                },
+              },
+            },
+          }}
+        >
+          <TableBuilderColumn header="거래">
+            {(listing: Listing) => (
+              <Tag closeable={false} kind={listing.tradeType === 'sale' ? KIND.accent : KIND.warning} hierarchy={HIERARCHY.secondary}
+                overrides={{ Root: { style: { marginLeft: 0 } } }}>
+                {TRADE_LABEL[listing.tradeType]}
+              </Tag>
+            )}
+          </TableBuilderColumn>
+          <TableBuilderColumn header="유형">
+            {(listing: Listing) => TYPE_LABEL[listing.type]}
+          </TableBuilderColumn>
+          <TableBuilderColumn header="주소">
+            {(listing: Listing) => (
+              <StyledLink
+                href={`/detail/${listing.id}`}
+                onClick={(e) => { e.preventDefault(); router.push(`/detail/${listing.id}`); }}
+              >
+                {listing.address}
+              </StyledLink>
+            )}
+          </TableBuilderColumn>
+          <TableBuilderColumn header="가격" numeric>
+            {(listing: Listing) => formatPrice(listing.price)}
+          </TableBuilderColumn>
+          <TableBuilderColumn header="면적">
+            {(listing: Listing) => `${listing.area}㎡`}
+          </TableBuilderColumn>
+          <TableBuilderColumn header="층">
+            {(listing: Listing) =>
+              listing.floor !== undefined && listing.floor !== null
+                ? `${listing.floor}층${listing.totalFloors ? `/${listing.totalFloors}층` : ''}`
+                : '-'
+            }
+          </TableBuilderColumn>
+          <TableBuilderColumn header="출처">
+            {(listing: Listing) =>
+              listing.source === 'naver' ? (
+                <Tag closeable={false} kind={KIND.positive} hierarchy={HIERARCHY.secondary}
+                  overrides={{ Root: { style: { marginLeft: 0 } } }}>
+                  네이버
+                </Tag>
+              ) : '직접'
+            }
+          </TableBuilderColumn>
+          <TableBuilderColumn header="상태">
+            {(listing: Listing) => (
+              <Tag closeable={false} kind={STATUS_KIND[listing.status]} hierarchy={HIERARCHY.primary}
+                overrides={{ Root: { style: { marginLeft: 0 } } }}>
+                {STATUS_LABEL[listing.status]}
+              </Tag>
+            )}
+          </TableBuilderColumn>
+        </TableBuilder>
       ) : (
-        <div className={css({ display: 'flex', flexDirection: 'column', gap: '12px' })}>
-          {listings.length > 0 ? (
-            listings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} />
-            ))
-          ) : (
-            <p className={css({ color: '#888', textAlign: 'center', padding: '40px 0' })}>
-              검색 결과가 없습니다
-            </p>
-          )}
-        </div>
+        <LabelSmall color="contentSecondary" $style={{ textAlign: 'center', padding: '40px 0' }}>
+          검색 결과가 없습니다
+        </LabelSmall>
       )}
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className={css({ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '20px' })}>
+        <Block display="flex" justifyContent="center" gridGap="8px" marginTop="24px" alignItems="center">
           <Button onClick={() => search(page - 1)} disabled={page <= 1} size="compact" kind="secondary">
             이전
           </Button>
-          <span className={css({ display: 'flex', alignItems: 'center', fontSize: '14px' })}>
-            {page} / {totalPages}
-          </span>
+          <LabelSmall>{page} / {totalPages}</LabelSmall>
           <Button onClick={() => search(page + 1)} disabled={page >= totalPages} size="compact" kind="secondary">
             다음
           </Button>
-        </div>
+        </Block>
       )}
-    </div>
+    </Block>
   );
 }

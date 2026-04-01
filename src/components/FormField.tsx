@@ -1,29 +1,21 @@
 'use client';
 
-import { useStyletron } from 'baseui';
+import { FormControl } from 'baseui/form-control';
 
 export default function FormField({
   label,
+  caption,
+  error,
   children,
 }: {
   label: string;
+  caption?: string;
+  error?: string;
   children: React.ReactNode;
 }) {
-  const [css] = useStyletron();
   return (
-    <div>
-      <label
-        className={css({
-          display: 'block',
-          fontSize: '14px',
-          fontWeight: 500,
-          color: '#333',
-          marginBottom: '6px',
-        })}
-      >
-        {label}
-      </label>
+    <FormControl label={label} caption={caption} error={error}>
       {children}
-    </div>
+    </FormControl>
   );
 }

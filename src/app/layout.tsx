@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import StyletronProvider from '@/components/StyletronProvider';
-import Navigation from '@/components/Navigation';
+import Sidebar from '@/components/Navigation';
+import LayoutMain from '@/components/LayoutMain';
 
 export const metadata: Metadata = {
   title: '이모님 부동산',
@@ -14,19 +15,26 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
+      <head>
+        <link
+          rel="stylesheet"
+          as="style"
+          crossOrigin="anonymous"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css"
+        />
+      </head>
       <body
         style={{
           margin: 0,
           fontFamily:
-            '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", sans-serif',
           backgroundColor: '#f8f9fa',
+          minWidth: '1280px',
         }}
       >
         <StyletronProvider>
-          <main style={{ paddingBottom: '80px', minHeight: '100vh' }}>
-            {children}
-          </main>
-          <Navigation />
+          <Sidebar />
+          <LayoutMain>{children}</LayoutMain>
         </StyletronProvider>
       </body>
     </html>

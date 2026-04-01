@@ -1,6 +1,9 @@
 'use client';
 
 import { useStyletron } from 'baseui';
+import { Tag, KIND, HIERARCHY } from 'baseui/tag';
+import { LabelMedium, ParagraphSmall } from 'baseui/typography';
+import { Block } from 'baseui/block';
 import { Listing } from '@/types/listing';
 import Link from 'next/link';
 
@@ -29,10 +32,10 @@ const STATUS_LABEL: Record<string, string> = {
   closed: '완료',
 };
 
-const STATUS_COLOR: Record<string, string> = {
-  active: '#2e7d32',
-  contracted: '#ed6c02',
-  closed: '#9e9e9e',
+const STATUS_KIND: Record<string, typeof KIND[keyof typeof KIND]> = {
+  active: KIND.positive,
+  contracted: KIND.warning,
+  closed: KIND.neutral,
 };
 
 export default function ListingCard({ listing }: { listing: Listing }) {
@@ -47,123 +50,106 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         color: 'inherit',
       })}
     >
-      <div
-        className={css({
-          border: '1px solid #e0e0e0',
-          borderRadius: '12px',
-          padding: '16px',
-          backgroundColor: '#ffffff',
-          ':hover': { boxShadow: '0 2px 8px rgba(0,0,0,0.1)' },
-          transition: 'box-shadow 0.2s',
-        })}
+      <Block
+        backgroundColor="white"
+        padding="16px 20px"
+        overrides={{
+          Block: {
+            style: {
+              border: '1px solid #e0e0e0',
+              borderRadius: '8px',
+              ':hover': { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+              transition: 'box-shadow 0.2s',
+              cursor: 'pointer',
+            },
+          },
+        }}
       >
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            marginBottom: '8px',
-          })}
-        >
-          <div className={css({ display: 'flex', gap: '6px', flexWrap: 'wrap' })}>
-            <span
-              className={css({
-                padding: '2px 8px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: 600,
-                backgroundColor: listing.tradeType === 'sale' ? '#e3f2fd' : '#fff3e0',
-                color: listing.tradeType === 'sale' ? '#1565c0' : '#e65100',
-              })}
+        <Block display="flex" justifyContent="space-between" alignItems="center" marginBottom="8px">
+          <Block display="flex" gridGap="4px" alignItems="center">
+            <Tag
+              closeable={false}
+              kind={listing.tradeType === 'sale' ? KIND.accent : KIND.warning}
+              hierarchy={HIERARCHY.secondary}
+              overrides={{ Root: { style: { marginLeft: 0, marginTop: 0, marginBottom: 0 } } }}
             >
               {TRADE_LABEL[listing.tradeType]}
-            </span>
-            <span
-              className={css({
-                padding: '2px 8px',
-                borderRadius: '4px',
-                fontSize: '12px',
-                backgroundColor: '#f5f5f5',
-                color: '#616161',
-              })}
+            </Tag>
+            <Tag
+              closeable={false}
+              kind={KIND.neutral}
+              hierarchy={HIERARCHY.secondary}
+              overrides={{ Root: { style: { marginLeft: 0, marginTop: 0, marginBottom: 0 } } }}
             >
               {TYPE_LABEL[listing.type]}
-            </span>
+            </Tag>
             {listing.source === 'naver' && (
-              <span
-                className={css({
-                  padding: '2px 8px',
-                  borderRadius: '4px',
-                  fontSize: '12px',
-                  backgroundColor: '#e8f5e9',
-                  color: '#2e7d32',
-                })}
+              <Tag
+                closeable={false}
+                kind={KIND.positive}
+                hierarchy={HIERARCHY.secondary}
+                overrides={{ Root: { style: { marginLeft: 0, marginTop: 0, marginBottom: 0 } } }}
               >
                 네이버
-              </span>
+              </Tag>
             )}
-          </div>
-          <span
-            className={css({
-              fontSize: '12px',
-              fontWeight: 600,
-              color: STATUS_COLOR[listing.status],
-            })}
+          </Block>
+          <Tag
+            closeable={false}
+            kind={STATUS_KIND[listing.status]}
+            hierarchy={HIERARCHY.primary}
+            overrides={{ Root: { style: { marginRight: 0, marginTop: 0, marginBottom: 0 } } }}
           >
             {STATUS_LABEL[listing.status]}
-          </span>
-        </div>
+          </Tag>
+        </Block>
 
-        <h3
-          className={css({
-            margin: '0 0 4px 0',
-            fontSize: '15px',
-            fontWeight: 600,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          })}
+        <LabelMedium
+          overrides={{
+            Block: {
+              style: {
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap',
+                marginBottom: '4px',
+              },
+            },
+          }}
         >
           {listing.address}
-        </h3>
+        </LabelMedium>
 
         {listing.addressDetail && (
-          <p
-            className={css({
-              margin: '0 0 8px 0',
-              fontSize: '13px',
-              color: '#888',
-            })}
-          >
+          <ParagraphSmall color="contentSecondary" marginTop="0" marginBottom="8px">
             {listing.addressDetail}
-          </p>
+          </ParagraphSmall>
         )}
 
-        <div
-          className={css({
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          })}
-        >
-          <span className={css({ fontSize: '18px', fontWeight: 700, color: '#1a1a1a' })}>
+        <Block display="flex" justifyContent="space-between" alignItems="center">
+          <LabelMedium
+            overrides={{
+              Block: { style: { fontSize: '18px', fontWeight: 700 } },
+            }}
+          >
             {formatPrice(listing.price)}
             {listing.tradeType === 'lease' && listing.monthlyRent
               ? ` / 월 ${listing.monthlyRent.toLocaleString()}만`
               : ''}
-          </span>
-          <div className={css({ display: 'flex', gap: '12px', fontSize: '13px', color: '#666' })}>
-            <span>{listing.area}㎡</span>
+          </LabelMedium>
+          <Block display="flex" gridGap="12px">
+            <ParagraphSmall color="contentSecondary" margin="0">
+              {listing.area}㎡
+            </ParagraphSmall>
             {listing.floor !== undefined && listing.floor !== null && (
-              <span>
+              <ParagraphSmall color="contentSecondary" margin="0">
                 {listing.floor}층{listing.totalFloors ? `/${listing.totalFloors}층` : ''}
-              </span>
+              </ParagraphSmall>
             )}
-          </div>
-        </div>
-      </div>
+          </Block>
+        </Block>
+      </Block>
     </Link>
   );
 }
 
-export { formatPrice, TYPE_LABEL, TRADE_LABEL, STATUS_LABEL, STATUS_COLOR };
+export { formatPrice, TYPE_LABEL, TRADE_LABEL, STATUS_LABEL, STATUS_KIND };

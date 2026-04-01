@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { useStyletron } from 'baseui';
 import { Input } from 'baseui/input';
 import { Textarea } from 'baseui/textarea';
 import { Select, Value } from 'baseui/select';
 import { Button } from 'baseui/button';
 import { Spinner } from 'baseui/spinner';
-import FormField from '@/components/FormField';
+import { FormControl } from 'baseui/form-control';
+import { Notification, KIND as NKIND } from 'baseui/notification';
+import { HeadingXLarge } from 'baseui/typography';
+import { Block } from 'baseui/block';
+import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
+import { ChevronLeft } from 'baseui/icon';
 import { Listing } from '@/types/listing';
 
 const TYPE_OPTIONS = [
@@ -28,7 +32,6 @@ const STATUS_OPTIONS = [
 ];
 
 export default function EditListingPage() {
-  const [css] = useStyletron();
   const params = useParams();
   const router = useRouter();
 
@@ -124,99 +127,106 @@ export default function EditListingPage() {
 
   if (loading) {
     return (
-      <div className={css({ display: 'flex', justifyContent: 'center', padding: '60px' })}>
+      <Block display="flex" justifyContent="center" padding="60px">
         <Spinner />
-      </div>
+      </Block>
     );
   }
 
   return (
-    <div className={css({ padding: '20px', maxWidth: '600px', margin: '0 auto' })}>
+    <Block maxWidth="800px">
       <Button
         onClick={() => router.back()}
         kind="tertiary"
         size="compact"
+        startEnhancer={() => <ChevronLeft size={20} />}
         overrides={{ BaseButton: { style: { marginBottom: '12px', paddingLeft: 0 } } }}
       >
-        ← 뒤로
+        뒤로
       </Button>
 
-      <h1 className={css({ fontSize: '24px', fontWeight: 700, marginBottom: '20px' })}>
+      <HeadingXLarge marginTop="0" marginBottom="24px">
         매물 수정
-      </h1>
+      </HeadingXLarge>
 
       {error && (
-        <div className={css({ padding: '12px', backgroundColor: '#fdecea', color: '#d32f2f', borderRadius: '8px', marginBottom: '12px', fontSize: '14px' })}>
-          {error}
-        </div>
+        <Block marginBottom="16px">
+          <Notification kind={NKIND.negative} closeable>{error}</Notification>
+        </Block>
       )}
 
-      <div className={css({ display: 'flex', flexDirection: 'column', gap: '16px' })}>
-        <div className={css({ display: 'flex', gap: '12px' })}>
-          <div className={css({ flex: 1 })}>
-            <FormField label="유형">
+      <Block display="flex" flexDirection="column" gridGap="8px">
+        <FlexGrid flexGridColumnCount={2} flexGridColumnGap="16px">
+          <FlexGridItem>
+            <FormControl label="유형">
               <Select options={TYPE_OPTIONS} value={type} onChange={({ value }) => setType(value)} clearable={false} />
-            </FormField>
-          </div>
-          <div className={css({ flex: 1 })}>
-            <FormField label="거래 유형">
+            </FormControl>
+          </FlexGridItem>
+          <FlexGridItem>
+            <FormControl label="거래 유형">
               <Select options={TRADE_OPTIONS} value={tradeType} onChange={({ value }) => setTradeType(value)} clearable={false} />
-            </FormField>
-          </div>
-        </div>
+            </FormControl>
+          </FlexGridItem>
+        </FlexGrid>
 
-        <FormField label="상태">
+        <FormControl label="상태">
           <Select options={STATUS_OPTIONS} value={status} onChange={({ value }) => setStatus(value)} clearable={false} />
-        </FormField>
+        </FormControl>
 
-        <FormField label="주소 *">
+        <FormControl label="주소 *">
           <Input value={address} onChange={(e) => setAddress(e.currentTarget.value)} />
-        </FormField>
+        </FormControl>
 
-        <FormField label="상세주소">
+        <FormControl label="상세주소">
           <Input value={addressDetail} onChange={(e) => setAddressDetail(e.currentTarget.value)} />
-        </FormField>
+        </FormControl>
 
-        <FormField label={isLease ? '보증금 (만원) *' : '매매가 (만원) *'}>
+        <FormControl label={isLease ? '보증금 (만원) *' : '매매가 (만원) *'}>
           <Input value={price} onChange={(e) => setPrice(e.currentTarget.value)} type="number" />
-        </FormField>
+        </FormControl>
 
         {isLease && (
-          <>
-            <FormField label="보증금 (만원)">
-              <Input value={deposit} onChange={(e) => setDeposit(e.currentTarget.value)} type="number" />
-            </FormField>
-            <FormField label="월세 (만원)">
-              <Input value={monthlyRent} onChange={(e) => setMonthlyRent(e.currentTarget.value)} type="number" />
-            </FormField>
-          </>
+          <FlexGrid flexGridColumnCount={2} flexGridColumnGap="16px">
+            <FlexGridItem>
+              <FormControl label="보증금 (만원)">
+                <Input value={deposit} onChange={(e) => setDeposit(e.currentTarget.value)} type="number" />
+              </FormControl>
+            </FlexGridItem>
+            <FlexGridItem>
+              <FormControl label="월세 (만원)">
+                <Input value={monthlyRent} onChange={(e) => setMonthlyRent(e.currentTarget.value)} type="number" />
+              </FormControl>
+            </FlexGridItem>
+          </FlexGrid>
         )}
 
-        <FormField label="면적 (㎡) *">
+        <FormControl label="면적 (㎡) *">
           <Input value={area} onChange={(e) => setArea(e.currentTarget.value)} type="number" />
-        </FormField>
+        </FormControl>
 
-        <div className={css({ display: 'flex', gap: '12px' })}>
-          <div className={css({ flex: 1 })}>
-            <FormField label="층수">
+        <FlexGrid flexGridColumnCount={2} flexGridColumnGap="16px">
+          <FlexGridItem>
+            <FormControl label="층수">
               <Input value={floor} onChange={(e) => setFloor(e.currentTarget.value)} type="number" />
-            </FormField>
-          </div>
-          <div className={css({ flex: 1 })}>
-            <FormField label="총 층수">
+            </FormControl>
+          </FlexGridItem>
+          <FlexGridItem>
+            <FormControl label="총 층수">
               <Input value={totalFloors} onChange={(e) => setTotalFloors(e.currentTarget.value)} type="number" />
-            </FormField>
-          </div>
-        </div>
+            </FormControl>
+          </FlexGridItem>
+        </FlexGrid>
 
-        <FormField label="설명">
+        <FormControl label="설명">
           <Textarea value={description} onChange={(e) => setDescription(e.currentTarget.value)} />
-        </FormField>
+        </FormControl>
 
-        <Button onClick={handleSubmit} isLoading={saving} overrides={{ BaseButton: { style: { marginTop: '8px' } } }}>
-          저장
-        </Button>
-      </div>
-    </div>
+        <Block marginTop="8px">
+          <Button onClick={handleSubmit} isLoading={saving}>
+            저장
+          </Button>
+        </Block>
+      </Block>
+    </Block>
   );
 }

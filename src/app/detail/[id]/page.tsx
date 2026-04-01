@@ -5,13 +5,21 @@ import { useParams, useRouter } from 'next/navigation';
 import { useStyletron } from 'baseui';
 import { Button } from 'baseui/button';
 import { Spinner } from 'baseui/spinner';
+import { Card, StyledBody } from 'baseui/card';
+import { Tag, KIND, HIERARCHY } from 'baseui/tag';
+import { HeadingXLarge, HeadingSmall, LabelSmall, LabelMedium, ParagraphMedium } from 'baseui/typography';
+import { Block } from 'baseui/block';
+import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
+import { ChevronLeft, Delete } from 'baseui/icon';
+import { MdEdit } from 'react-icons/md';
+import Image from 'next/image';
 import { ListingDetail } from '@/types/listing';
 import {
   formatPrice,
   TYPE_LABEL,
   TRADE_LABEL,
   STATUS_LABEL,
-  STATUS_COLOR,
+  STATUS_KIND,
 } from '@/components/ListingCard';
 
 export default function DetailPage() {
@@ -39,236 +47,200 @@ export default function DetailPage() {
 
   if (loading) {
     return (
-      <div className={css({ display: 'flex', justifyContent: 'center', padding: '60px' })}>
+      <Block display="flex" justifyContent="center" padding="60px">
         <Spinner />
-      </div>
+      </Block>
     );
   }
 
   if (!listing) {
     return (
-      <div className={css({ padding: '20px', textAlign: 'center' })}>
-        <p>매물을 찾을 수 없습니다</p>
+      <Block padding="20px" $style={{ textAlign: 'center' }}>
+        <ParagraphMedium>매물을 찾을 수 없습니다</ParagraphMedium>
         <Button onClick={() => router.back()} kind="secondary">
           돌아가기
         </Button>
-      </div>
+      </Block>
     );
   }
 
   return (
-    <div className={css({ padding: '20px', maxWidth: '600px', margin: '0 auto' })}>
+    <Block maxWidth="900px">
       {/* Back button */}
       <Button
         onClick={() => router.back()}
         kind="tertiary"
         size="compact"
+        startEnhancer={() => <ChevronLeft size={20} />}
         overrides={{ BaseButton: { style: { marginBottom: '12px', paddingLeft: 0 } } }}
       >
-        ← 뒤로
+        뒤로
       </Button>
 
       {/* Header */}
-      <div className={css({ marginBottom: '20px' })}>
-        <div className={css({ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' })}>
-          <span
-            className={css({
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: 600,
-              backgroundColor: listing.tradeType === 'sale' ? '#e3f2fd' : '#fff3e0',
-              color: listing.tradeType === 'sale' ? '#1565c0' : '#e65100',
-            })}
+      <Block marginBottom="24px">
+        <Block display="flex" gridGap="8px" marginBottom="12px" flexWrap>
+          <Tag
+            closeable={false}
+            kind={listing.tradeType === 'sale' ? KIND.accent : KIND.warning}
+            hierarchy={HIERARCHY.secondary}
+            overrides={{ Root: { style: { marginLeft: 0 } } }}
           >
             {TRADE_LABEL[listing.tradeType]}
-          </span>
-          <span
-            className={css({
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '13px',
-              backgroundColor: '#f5f5f5',
-              color: '#616161',
-            })}
-          >
+          </Tag>
+          <Tag closeable={false} kind={KIND.neutral} hierarchy={HIERARCHY.secondary}
+            overrides={{ Root: { style: { marginLeft: 0 } } }}>
             {TYPE_LABEL[listing.type]}
-          </span>
-          <span
-            className={css({
-              padding: '4px 10px',
-              borderRadius: '4px',
-              fontSize: '13px',
-              fontWeight: 600,
-              color: STATUS_COLOR[listing.status],
-              backgroundColor: '#f5f5f5',
-            })}
-          >
+          </Tag>
+          <Tag closeable={false} kind={STATUS_KIND[listing.status]} hierarchy={HIERARCHY.primary}
+            overrides={{ Root: { style: { marginLeft: 0 } } }}>
             {STATUS_LABEL[listing.status]}
-          </span>
+          </Tag>
           {listing.source === 'naver' && (
-            <span
-              className={css({
-                padding: '4px 10px',
-                borderRadius: '4px',
-                fontSize: '13px',
-                backgroundColor: '#e8f5e9',
-                color: '#2e7d32',
-              })}
-            >
+            <Tag closeable={false} kind={KIND.positive} hierarchy={HIERARCHY.secondary}
+              overrides={{ Root: { style: { marginLeft: 0 } } }}>
               네이버
-            </span>
+            </Tag>
           )}
-        </div>
-        <h1 className={css({ fontSize: '22px', fontWeight: 700, margin: '0 0 4px 0' })}>
+        </Block>
+        <HeadingXLarge marginTop="0" marginBottom="4px">
           {listing.address}
-        </h1>
+        </HeadingXLarge>
         {listing.addressDetail && (
-          <p className={css({ fontSize: '15px', color: '#666', margin: 0 })}>
+          <ParagraphMedium color="contentSecondary" margin="0">
             {listing.addressDetail}
-          </p>
+          </ParagraphMedium>
         )}
-      </div>
+      </Block>
 
-      {/* Price */}
-      <div
-        className={css({
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          padding: '20px',
-          border: '1px solid #e0e0e0',
-          marginBottom: '16px',
-        })}
-      >
-        <p className={css({ fontSize: '13px', color: '#888', margin: '0 0 4px 0' })}>
-          {listing.tradeType === 'sale' ? '매매가' : '보증금'}
-        </p>
-        <p className={css({ fontSize: '28px', fontWeight: 700, margin: 0, color: '#1a1a1a' })}>
-          {formatPrice(listing.price)}
-        </p>
-        {listing.tradeType === 'lease' && listing.monthlyRent !== undefined && (
-          <p className={css({ fontSize: '16px', color: '#e65100', margin: '4px 0 0 0' })}>
-            월세 {listing.monthlyRent.toLocaleString()}만원
-          </p>
-        )}
-      </div>
+      <FlexGrid flexGridColumnCount={2} flexGridColumnGap="16px" flexGridRowGap="16px" marginBottom="24px">
+        {/* Price Card */}
+        <FlexGridItem>
+          <Card overrides={{ Root: { style: { borderRadius: '8px' } } }}>
+            <StyledBody>
+              <LabelSmall color="contentSecondary" marginBottom="4px">
+                {listing.tradeType === 'sale' ? '매매가' : '보증금'}
+              </LabelSmall>
+              <HeadingXLarge margin="0">{formatPrice(listing.price)}</HeadingXLarge>
+              {listing.tradeType === 'lease' && listing.monthlyRent !== undefined && (
+                <LabelMedium color="warning" marginTop="4px">
+                  월세 {listing.monthlyRent.toLocaleString()}만원
+                </LabelMedium>
+              )}
+            </StyledBody>
+          </Card>
+        </FlexGridItem>
 
-      {/* Info Grid */}
-      <div
-        className={css({
-          backgroundColor: '#fff',
-          borderRadius: '12px',
-          padding: '20px',
-          border: '1px solid #e0e0e0',
-          marginBottom: '16px',
-        })}
-      >
-        <h3 className={css({ fontSize: '16px', fontWeight: 600, margin: '0 0 12px 0' })}>
-          상세 정보
-        </h3>
-        <div className={css({ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' })}>
-          <InfoItem label="면적" value={`${listing.area}㎡`} />
-          {listing.floor !== undefined && listing.floor !== null && (
-            <InfoItem
-              label="층수"
-              value={`${listing.floor}층${listing.totalFloors ? ` / ${listing.totalFloors}층` : ''}`}
-            />
-          )}
-          <InfoItem label="유형" value={TYPE_LABEL[listing.type]} />
-          <InfoItem label="거래" value={TRADE_LABEL[listing.tradeType]} />
-          {listing.source === 'naver' && listing.scrapedAt && (
-            <InfoItem
-              label="수집일"
-              value={new Date(listing.scrapedAt).toLocaleDateString('ko-KR')}
-            />
-          )}
-          <InfoItem
-            label="등록일"
-            value={new Date(listing.createdAt).toLocaleDateString('ko-KR')}
-          />
-        </div>
-      </div>
+        {/* Info Card */}
+        <FlexGridItem>
+          <Card overrides={{ Root: { style: { borderRadius: '8px' } } }}>
+            <StyledBody>
+              <HeadingSmall marginTop="0" marginBottom="12px">상세 정보</HeadingSmall>
+              <FlexGrid flexGridColumnCount={2} flexGridColumnGap="12px" flexGridRowGap="12px">
+                <FlexGridItem>
+                  <LabelSmall color="contentSecondary">면적</LabelSmall>
+                  <LabelMedium>{listing.area}㎡</LabelMedium>
+                </FlexGridItem>
+                {listing.floor !== undefined && listing.floor !== null && (
+                  <FlexGridItem>
+                    <LabelSmall color="contentSecondary">층수</LabelSmall>
+                    <LabelMedium>
+                      {listing.floor}층{listing.totalFloors ? ` / ${listing.totalFloors}층` : ''}
+                    </LabelMedium>
+                  </FlexGridItem>
+                )}
+                <FlexGridItem>
+                  <LabelSmall color="contentSecondary">유형</LabelSmall>
+                  <LabelMedium>{TYPE_LABEL[listing.type]}</LabelMedium>
+                </FlexGridItem>
+                <FlexGridItem>
+                  <LabelSmall color="contentSecondary">거래</LabelSmall>
+                  <LabelMedium>{TRADE_LABEL[listing.tradeType]}</LabelMedium>
+                </FlexGridItem>
+                {listing.source === 'naver' && listing.scrapedAt && (
+                  <FlexGridItem>
+                    <LabelSmall color="contentSecondary">수집일</LabelSmall>
+                    <LabelMedium>{new Date(listing.scrapedAt).toLocaleDateString('ko-KR')}</LabelMedium>
+                  </FlexGridItem>
+                )}
+                <FlexGridItem>
+                  <LabelSmall color="contentSecondary">등록일</LabelSmall>
+                  <LabelMedium>{new Date(listing.createdAt).toLocaleDateString('ko-KR')}</LabelMedium>
+                </FlexGridItem>
+              </FlexGrid>
+            </StyledBody>
+          </Card>
+        </FlexGridItem>
+      </FlexGrid>
 
       {/* Description */}
       {listing.description && (
-        <div
-          className={css({
-            backgroundColor: '#fff',
-            borderRadius: '12px',
-            padding: '20px',
-            border: '1px solid #e0e0e0',
-            marginBottom: '16px',
-          })}
-        >
-          <h3 className={css({ fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0' })}>
-            설명
-          </h3>
-          <p className={css({ fontSize: '14px', lineHeight: '1.6', color: '#333', margin: 0, whiteSpace: 'pre-wrap' })}>
-            {listing.description}
-          </p>
-        </div>
+        <Card overrides={{ Root: { style: { borderRadius: '8px', marginBottom: '16px' } } }}>
+          <StyledBody>
+            <HeadingSmall marginTop="0" marginBottom="8px">설명</HeadingSmall>
+            <ParagraphMedium $style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }} margin="0">
+              {listing.description}
+            </ParagraphMedium>
+          </StyledBody>
+        </Card>
       )}
 
       {/* Images */}
       {listing.images && listing.images.length > 0 && (
-        <div
-          className={css({
-            backgroundColor: '#fff',
-            borderRadius: '12px',
-            padding: '20px',
-            border: '1px solid #e0e0e0',
-            marginBottom: '16px',
-          })}
-        >
-          <h3 className={css({ fontSize: '16px', fontWeight: 600, margin: '0 0 12px 0' })}>
-            사진
-          </h3>
-          <div className={css({ display: 'flex', flexDirection: 'column', gap: '8px' })}>
-            {listing.images.map((url, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={i}
-                src={url}
-                alt={`매물 사진 ${i + 1}`}
-                className={css({
-                  width: '100%',
-                  borderRadius: '8px',
-                  objectFit: 'cover',
-                })}
-              />
-            ))}
-          </div>
-        </div>
+        <Card overrides={{ Root: { style: { borderRadius: '8px', marginBottom: '16px' } } }}>
+          <StyledBody>
+            <HeadingSmall marginTop="0" marginBottom="12px">사진</HeadingSmall>
+            <Block display="flex" flexDirection="column" gridGap="8px">
+              {listing.images.map((url, i) => (
+                <Image
+                  key={i}
+                  src={url}
+                  alt={`매물 사진 ${i + 1}`}
+                  width={0}
+                  height={0}
+                  sizes="100vw"
+                  className={css({
+                    width: '100%',
+                    height: 'auto',
+                    borderRadius: '8px',
+                    objectFit: 'cover',
+                  })}
+                />
+              ))}
+            </Block>
+          </StyledBody>
+        </Card>
       )}
 
       {/* Naver Link */}
       {listing.naverLink && (
-        <a
-          href={listing.naverLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={css({
-            display: 'block',
-            textAlign: 'center',
-            padding: '12px',
-            backgroundColor: '#03C75A',
-            color: '#fff',
-            borderRadius: '8px',
-            textDecoration: 'none',
-            fontWeight: 600,
-            fontSize: '15px',
-          })}
-        >
-          네이버 부동산에서 보기
-        </a>
+        <Block marginBottom="16px">
+          <Button
+            onClick={() => window.open(listing.naverLink, '_blank')}
+            kind="secondary"
+            overrides={{
+              BaseButton: {
+                style: {
+                  width: '100%',
+                  backgroundColor: '#03C75A',
+                  color: '#fff',
+                  ':hover': { backgroundColor: '#02b351' },
+                },
+              },
+            }}
+          >
+            네이버 부동산에서 보기
+          </Button>
+        </Block>
       )}
 
       {/* Edit/Delete for manual listings */}
       {listing.source === 'manual' && (
-        <div className={css({ display: 'flex', gap: '8px', marginTop: '16px' })}>
+        <Block display="flex" gridGap="12px" marginTop="16px">
           <Button
             onClick={() => router.push(`/my-listings/edit/${listing.id}`)}
             kind="secondary"
+            startEnhancer={() => <MdEdit size={16} />}
             overrides={{ BaseButton: { style: { flex: 1 } } }}
           >
             수정
@@ -281,6 +253,7 @@ export default function DetailPage() {
               }
             }}
             kind="secondary"
+            startEnhancer={() => <Delete size={16} />}
             overrides={{
               BaseButton: {
                 style: { flex: 1, color: '#d32f2f', borderColor: '#d32f2f' },
@@ -289,18 +262,8 @@ export default function DetailPage() {
           >
             삭제
           </Button>
-        </div>
+        </Block>
       )}
-    </div>
-  );
-}
-
-function InfoItem({ label, value }: { label: string; value: string }) {
-  const [css] = useStyletron();
-  return (
-    <div>
-      <p className={css({ fontSize: '12px', color: '#888', margin: '0 0 2px 0' })}>{label}</p>
-      <p className={css({ fontSize: '15px', fontWeight: 500, margin: 0 })}>{value}</p>
-    </div>
+    </Block>
   );
 }

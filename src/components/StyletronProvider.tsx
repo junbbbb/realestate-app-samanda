@@ -3,7 +3,14 @@
 import { useRef } from 'react';
 import { Provider as StyletronProvider } from 'styletron-react';
 import { Client as Styletron, Server } from 'styletron-engine-monolithic';
-import { LightTheme, BaseProvider } from 'baseui';
+import { BaseProvider, createTheme } from 'baseui';
+
+const FONT_FAMILY =
+  '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+
+const theme = createTheme({
+  primaryFontFamily: FONT_FAMILY,
+});
 
 export default function AppStyletronProvider({
   children,
@@ -18,7 +25,7 @@ export default function AppStyletronProvider({
 
   return (
     <StyletronProvider value={engineRef.current}>
-      <BaseProvider theme={LightTheme}>{children}</BaseProvider>
+      <BaseProvider theme={theme}>{children}</BaseProvider>
     </StyletronProvider>
   );
 }
