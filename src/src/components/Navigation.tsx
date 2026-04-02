@@ -2,18 +2,22 @@
 
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
+import { useStyletron } from 'baseui';
 import { Navigation } from 'baseui/side-navigation';
 import { HeadingSmall, LabelSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { MdDashboard, MdSearch, MdListAlt } from 'react-icons/md';
+import { AiFillStar } from 'react-icons/ai';
 
 const NAV_ITEMS = [
   { title: '대시보드', itemId: '/', icon: <MdDashboard size={20} /> },
   { title: '매물 검색', itemId: '/search', icon: <MdSearch size={20} /> },
+  { title: '즐겨찾기', itemId: '/favorites', icon: <AiFillStar size={20} /> },
   { title: '내 매물', itemId: '/my-listings', icon: <MdListAlt size={20} /> },
 ];
 
 export default function Sidebar() {
+  const [, theme] = useStyletron();
   const pathname = usePathname();
   const router = useRouter();
 
@@ -36,8 +40,8 @@ export default function Sidebar() {
             position: 'fixed',
             top: '0',
             left: '0',
-            backgroundColor: '#ffffff',
-            borderRight: '1px solid #e0e0e0',
+            backgroundColor: theme.colors.backgroundPrimary,
+            borderRight: `1px solid ${theme.colors.borderOpaque}`,
             display: 'flex',
             flexDirection: 'column',
             overflowY: 'auto',

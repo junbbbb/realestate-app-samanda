@@ -12,8 +12,10 @@ import { Block } from 'baseui/block';
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import { ChevronLeft, Delete } from 'baseui/icon';
 import { MdEdit } from 'react-icons/md';
+import { AiOutlineStar, AiFillStar } from 'react-icons/ai';
 import Image from 'next/image';
 import { ListingDetail } from '@/types/listing';
+import { useFavorites } from '@/lib/favorites';
 import {
   formatPrice,
   TYPE_LABEL,
@@ -24,11 +26,12 @@ import {
 import { fetchLocalDetail } from '@/lib/local-listings';
 
 export default function DetailPage() {
-  const [css] = useStyletron();
+  const [css, theme] = useStyletron();
   const params = useParams();
   const router = useRouter();
   const [listing, setListing] = useState<ListingDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     async function load() {
@@ -113,9 +116,28 @@ export default function DetailPage() {
             </Tag>
           )}
         </Block>
-        <HeadingXLarge marginTop="0" marginBottom="4px">
-          {listing.address}
-        </HeadingXLarge>
+        <Block display="flex" alignItems="center" gridGap="12px">
+          <HeadingXLarge marginTop="0" marginBottom="4px" $style={{ flex: 1 }}>
+            {listing.address}
+          </HeadingXLarge>
+          <Button
+            onClick={() => toggleFavorite(listing.id)}
+            kind="tertiary"
+            size="compact"
+            overrides={{
+              BaseButton: {
+                style: {
+                  fontSize: '24px',
+                  color: '#FFB400',
+                  paddingLeft: '8px',
+                  paddingRight: '8px',
+                },
+              },
+            }}
+          >
+            {isFavorite(listing.id) ? <AiFillStar /> : <AiOutlineStar />}
+          </Button>
+        </Block>
         {listing.addressDetail && (
           <ParagraphMedium color="contentSecondary" margin="0">
             {listing.addressDetail}
@@ -126,7 +148,7 @@ export default function DetailPage() {
       <FlexGrid flexGridColumnCount={2} flexGridColumnGap="16px" flexGridRowGap="16px" marginBottom="24px">
         {/* Price Card */}
         <FlexGridItem>
-          <Card overrides={{ Root: { style: { borderRadius: '8px' } } }}>
+          <Card overrides={{ Root: { style: { borderRadius: theme.borders.radius300 } } }}>
             <StyledBody>
               <LabelSmall color="contentSecondary" marginBottom="4px">
                 {listing.tradeType === 'sale' ? '매매가' : '보증금'}
@@ -143,7 +165,7 @@ export default function DetailPage() {
 
         {/* Info Card */}
         <FlexGridItem>
-          <Card overrides={{ Root: { style: { borderRadius: '8px' } } }}>
+          <Card overrides={{ Root: { style: { borderRadius: theme.borders.radius300 } } }}>
             <StyledBody>
               <HeadingSmall marginTop="0" marginBottom="12px">상세 정보</HeadingSmall>
               <FlexGrid flexGridColumnCount={2} flexGridColumnGap="12px" flexGridRowGap="12px">
@@ -185,7 +207,7 @@ export default function DetailPage() {
 
       {/* Description */}
       {listing.description && (
-        <Card overrides={{ Root: { style: { borderRadius: '8px', marginBottom: '16px' } } }}>
+        <Card overrides={{ Root: { style: { borderRadius: theme.borders.radius300, marginBottom: '16px' } } }}>
           <StyledBody>
             <HeadingSmall marginTop="0" marginBottom="8px">설명</HeadingSmall>
             <ParagraphMedium $style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }} margin="0">
@@ -197,7 +219,7 @@ export default function DetailPage() {
 
       {/* Images */}
       {listing.images && listing.images.length > 0 && (
-        <Card overrides={{ Root: { style: { borderRadius: '8px', marginBottom: '16px' } } }}>
+        <Card overrides={{ Root: { style: { borderRadius: theme.borders.radius300, marginBottom: '16px' } } }}>
           <StyledBody>
             <HeadingSmall marginTop="0" marginBottom="12px">사진</HeadingSmall>
             <Block display="flex" flexDirection="column" gridGap="8px">
@@ -212,7 +234,7 @@ export default function DetailPage() {
                   className={css({
                     width: '100%',
                     height: 'auto',
-                    borderRadius: '8px',
+                    borderRadius: theme.borders.radius300,
                     objectFit: 'cover',
                   })}
                 />
@@ -230,12 +252,12 @@ export default function DetailPage() {
             kind="secondary"
             overrides={{
               BaseButton: {
-                style: {
+                style: ({ $theme }) => ({
                   width: '100%',
-                  backgroundColor: '#03C75A',
-                  color: '#fff',
-                  ':hover': { backgroundColor: '#02b351' },
-                },
+                  backgroundColor: $theme.colors.positive,
+                  color: $theme.colors.contentOnColor,
+                  ':hover': { backgroundColor: $theme.colors.positiveActive },
+                }),
               },
             }}
           >
@@ -266,7 +288,7 @@ export default function DetailPage() {
             startEnhancer={() => <Delete size={16} />}
             overrides={{
               BaseButton: {
-                style: { flex: 1, color: '#d32f2f', borderColor: '#d32f2f' },
+                style: ({ $theme }) => ({ flex: 1, color: $theme.colors.negative, borderColor: $theme.colors.negative }),
               },
             }}
           >

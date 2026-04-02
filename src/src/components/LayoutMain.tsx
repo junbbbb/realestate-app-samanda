@@ -3,7 +3,7 @@
 import { useStyletron } from 'baseui';
 
 export default function LayoutMain({ children }: { children: React.ReactNode }) {
-  const [css] = useStyletron();
+  const [css, theme] = useStyletron();
 
   return (
     <main
@@ -11,6 +11,7 @@ export default function LayoutMain({ children }: { children: React.ReactNode }) 
         marginLeft: '240px',
         minHeight: '100vh',
         padding: '32px 40px',
+        backgroundColor: theme.colors.backgroundPrimary,
       })}
     >
       {children}

@@ -39,7 +39,7 @@ const STATUS_KIND: Record<string, typeof KIND[keyof typeof KIND]> = {
 };
 
 export default function ListingCard({ listing }: { listing: Listing }) {
-  const [css] = useStyletron();
+  const [css, theme] = useStyletron();
 
   return (
     <Link
@@ -51,14 +51,14 @@ export default function ListingCard({ listing }: { listing: Listing }) {
       })}
     >
       <Block
-        backgroundColor="white"
+        backgroundColor={theme.colors.backgroundPrimary}
         padding="16px 20px"
         overrides={{
           Block: {
             style: {
-              border: '1px solid #e0e0e0',
-              borderRadius: '8px',
-              ':hover': { boxShadow: '0 2px 8px rgba(0,0,0,0.08)' },
+              border: `1px solid ${theme.colors.borderOpaque}`,
+              borderRadius: theme.borders.radius300,
+              ':hover': { boxShadow: theme.lighting.shadow400 },
               transition: 'box-shadow 0.2s',
               cursor: 'pointer',
             },
@@ -128,7 +128,7 @@ export default function ListingCard({ listing }: { listing: Listing }) {
         <Block display="flex" justifyContent="space-between" alignItems="center">
           <LabelMedium
             overrides={{
-              Block: { style: { fontSize: '18px', fontWeight: 700 } },
+              Block: { style: { ...theme.typography.LabelLarge, fontWeight: theme.typography.font650.fontWeight } },
             }}
           >
             {formatPrice(listing.price)}

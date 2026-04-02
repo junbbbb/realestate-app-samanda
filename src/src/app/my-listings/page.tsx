@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useStyletron } from 'baseui';
 import { Button } from 'baseui/button';
 import { Spinner } from 'baseui/spinner';
 import { Select, Value } from 'baseui/select';
@@ -26,6 +27,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function MyListingsPage() {
+  const [, theme] = useStyletron();
   const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
@@ -88,7 +90,7 @@ export default function MyListingsPage() {
           data={listings}
           overrides={{
             Root: {
-              style: { borderRadius: '8px', overflow: 'hidden' },
+              style: { borderRadius: theme.borders.radius300, overflow: 'hidden' },
             },
           }}
         >

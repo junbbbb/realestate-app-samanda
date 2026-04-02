@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useStyletron } from 'baseui';
 import { Spinner } from 'baseui/spinner';
 import { Card, StyledBody } from 'baseui/card';
 import { HeadingXLarge, HeadingSmall, LabelSmall, DisplayMedium } from 'baseui/typography';
@@ -9,6 +10,7 @@ import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import ListingCard from '@/components/ListingCard';
 import { Listing } from '@/types/listing';
 import { fetchLocalListings } from '@/lib/local-listings';
+import { useFavorites } from '@/lib/favorites';
 
 interface Stats {
   todayNew: number;
@@ -22,19 +24,20 @@ function StatCard({
   label,
   value,
   unit,
-  color,
+  theme,
 }: {
   label: string;
   value: number;
   unit: string;
-  color: string;
+  theme: ReturnType<typeof useStyletron>[1];
 }) {
   return (
     <Card
       overrides={{
         Root: {
           style: {
-            borderRadius: '8px',
+            borderRadius: theme.borders.radius300,
+            backgroundColor: theme.colors.backgroundPrimary,
           },
         },
       }}
@@ -46,7 +49,7 @@ function StatCard({
         <DisplayMedium
           overrides={{
             Block: {
-              style: { color, fontSize: '32px', lineHeight: '1.2' },
+              style: { color: theme.colors.contentPrimary, ...theme.typography.DisplayXSmall },
             },
           }}
         >
@@ -57,8 +60,8 @@ function StatCard({
                 style: {
                   display: 'inline',
                   marginLeft: '4px',
-                  fontWeight: 400,
-                  color: '#666',
+                  fontWeight: theme.typography.font300.fontWeight,
+                  color: theme.colors.contentSecondary,
                 },
               },
             }}
@@ -72,9 +75,11 @@ function StatCard({
 }
 
 export default function DashboardPage() {
+  const [, theme] = useStyletron();
   const [stats, setStats] = useState<Stats | null>(null);
   const [recentListings, setRecentListings] = useState<Listing[]>([]);
   const [loading, setLoading] = useState(true);
+  const { favorites } = useFavorites();
 
   useEffect(() => {
     async function load() {
@@ -158,22 +163,25 @@ export default function DashboardPage() {
       </HeadingXLarge>
 
       <FlexGrid
-        flexGridColumnCount={4}
+        flexGridColumnCount={5}
         flexGridColumnGap="16px"
         flexGridRowGap="16px"
         marginBottom="32px"
       >
         <FlexGridItem>
-          <StatCard label="오늘 신규 매물" value={stats?.todayNew ?? 0} unit="건" color="#1565c0" />
+          <StatCard label="오늘 신규 매물" value={stats?.todayNew ?? 0} unit="건" theme={theme} />
         </FlexGridItem>
         <FlexGridItem>
-          <StatCard label="내 활성 매물" value={stats?.activeManual ?? 0} unit="건" color="#2e7d32" />
+          <StatCard label="내 활성 매물" value={stats?.activeManual ?? 0} unit="건" theme={theme} />
         </FlexGridItem>
         <FlexGridItem>
-          <StatCard label="계약 진행중" value={stats?.contractedManual ?? 0} unit="건" color="#ed6c02" />
+          <StatCard label="내 찜한 매물" value={favorites.length} unit="건" theme={theme} />
         </FlexGridItem>
         <FlexGridItem>
-          <StatCard label="거래 완료" value={stats?.closedManual ?? 0} unit="건" color="#9e9e9e" />
+          <StatCard label="계약 진행중" value={stats?.contractedManual ?? 0} unit="건" theme={theme} />
+        </FlexGridItem>
+        <FlexGridItem>
+          <StatCard label="거래 완료" value={stats?.closedManual ?? 0} unit="건" theme={theme} />
         </FlexGridItem>
       </FlexGrid>
 

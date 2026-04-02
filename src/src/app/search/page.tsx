@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback } from 'react';
+import { useStyletron } from 'baseui';
 import { Select, Value } from 'baseui/select';
 import { Input } from 'baseui/input';
 import { Button } from 'baseui/button';
@@ -14,12 +15,15 @@ import {
   TableBuilderColumn,
 } from 'baseui/table-semantic';
 import { Tag, KIND, HIERARCHY } from 'baseui/tag';
-import { Search, ChevronDown, ChevronUp } from 'baseui/icon';
+import { Search, ChevronDown, ChevronUp, ArrowDown } from 'baseui/icon';
 import { StyledLink } from 'baseui/link';
 import { Listing } from '@/types/listing';
 import { useRouter } from 'next/navigation';
 import { formatPrice, TYPE_LABEL, TRADE_LABEL, STATUS_LABEL, STATUS_KIND } from '@/components/ListingCard';
 import { fetchLocalListings } from '@/lib/local-listings';
+import { useFavorites } from '@/lib/favorites';
+import { AiOutlineStar, AiFillStar } from 'react-icons/ai';
+import * as XLSX from 'xlsx';
 
 const TYPE_OPTIONS = [
   { label: '전체', id: '' },
@@ -46,13 +50,18 @@ const SORT_OPTIONS = [
   { label: '층순', id: 'floor' },
 ];
 
+const SOURCE_LABEL: Record<string, string> = { naver: '네이버', manual: '직접 등록' };
+
 export default function SearchPage() {
+  const [, theme] = useStyletron();
   const router = useRouter();
   const [listings, setListings] = useState<Listing[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [loading, setLoading] = useState(false);
+
+  const { isFavorite, toggleFavorite } = useFavorites();
 
   const [typeFilter, setTypeFilter] = useState<Value>([]);
   const [tradeFilter, setTradeFilter] = useState<Value>([]);
@@ -67,13 +76,12 @@ export default function SearchPage() {
   const [floorMax, setFloorMax] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  const searchLocal = useCallback(
-    (allListings: Listing[], searchPage: number) => {
+  const getFilteredListings = useCallback(
+    (allListings: Listing[]) => {
       const typeVal = typeFilter[0]?.id as string;
       const tradeVal = tradeFilter[0]?.id as string;
       const sourceVal = sourceFilter[0]?.id as string;
       const sortVal = (sortFilter[0]?.id as string) || 'date';
-      const limit = 20;
 
       let filtered = [...allListings];
       if (typeVal) filtered = filtered.filter((l) => l.type === typeVal);
@@ -102,6 +110,15 @@ export default function SearchPage() {
         return sortOrder === 'asc' ? cmp : -cmp;
       });
 
+      return filtered;
+    },
+    [typeFilter, tradeFilter, sourceFilter, sortFilter, keyword, priceMin, priceMax, areaMin, areaMax, floorMin, floorMax]
+  );
+
+  const searchLocal = useCallback(
+    (allListings: Listing[], searchPage: number) => {
+      const limit = 20;
+      const filtered = getFilteredListings(allListings);
       const totalFiltered = filtered.length;
       const pages = Math.max(1, Math.ceil(totalFiltered / limit));
       const start = (searchPage - 1) * limit;
@@ -110,11 +127,38 @@ export default function SearchPage() {
       setPage(searchPage);
       setTotalPages(pages);
     },
-    [typeFilter, tradeFilter, sourceFilter, sortFilter, keyword, priceMin, priceMax, areaMin, areaMax, floorMin, floorMax]
+    [getFilteredListings]
   );
 
   const [allLocalListings, setAllLocalListings] = useState<Listing[]>([]);
   const [useLocal, setUseLocal] = useState(false);
+
+  const handleExcelDownload = useCallback(() => {
+    const dataToExport = useLocal && allLocalListings.length > 0
+      ? getFilteredListings(allLocalListings)
+      : listings;
+
+    if (dataToExport.length === 0) return;
+
+    const rows = dataToExport.map((l) => ({
+      '거래유형': TRADE_LABEL[l.tradeType] || l.tradeType,
+      '매물유형': TYPE_LABEL[l.type] || l.type,
+      '주소': l.address,
+      '상세주소': l.addressDetail || '',
+      '가격': formatPrice(l.price),
+      '면적(㎡)': l.area,
+      '층수': l.floor !== undefined && l.floor !== null ? `${l.floor}층` : '',
+      '출처': SOURCE_LABEL[l.source] || l.source,
+      '설명': l.description || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, '매물목록');
+
+    const today = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `매물검색_${today}.xlsx`);
+  }, [useLocal, allLocalListings, listings, getFilteredListings]);
 
   const search = useCallback(
     async (searchPage: number = 1) => {
@@ -272,14 +316,14 @@ export default function SearchPage() {
 
       {showFilters && (
         <Block
-          backgroundColor="white"
+          backgroundColor={theme.colors.backgroundPrimary}
           padding="20px"
           marginBottom="20px"
           overrides={{
             Block: {
               style: {
-                border: '1px solid #e0e0e0',
-                borderRadius: '8px',
+                border: `1px solid ${theme.colors.borderOpaque}`,
+                borderRadius: theme.borders.radius300,
               },
             },
           }}
@@ -321,9 +365,18 @@ export default function SearchPage() {
         </Block>
       )}
 
-      {/* Results count */}
+      {/* Results count + Excel download */}
       <Block display="flex" justifyContent="space-between" alignItems="center" marginBottom="12px">
         <LabelSmall color="contentSecondary">총 {total}건</LabelSmall>
+        <Button
+          onClick={handleExcelDownload}
+          size="compact"
+          kind="secondary"
+          disabled={listings.length === 0}
+          startEnhancer={() => <ArrowDown size={16} />}
+        >
+          엑셀 다운로드
+        </Button>
       </Block>
 
       {/* Table Results */}
@@ -337,14 +390,14 @@ export default function SearchPage() {
           overrides={{
             Root: {
               style: {
-                borderRadius: '8px',
+                borderRadius: theme.borders.radius300,
                 overflow: 'hidden',
               },
             },
             TableBodyRow: {
               style: {
                 cursor: 'pointer',
-                ':hover': { backgroundColor: '#f5f5f5' },
+                ':hover': { backgroundColor: theme.colors.backgroundSecondary },
               },
               props: {
                 onClick: (e: React.MouseEvent<HTMLTableRowElement>) => {
@@ -356,6 +409,16 @@ export default function SearchPage() {
             },
           }}
         >
+          <TableBuilderColumn header="★" overrides={{ TableHeadCell: { style: { width: '40px', textAlign: 'center' } }, TableBodyCell: { style: { width: '40px', textAlign: 'center' } } }}>
+            {(listing: Listing) => (
+              <span
+                onClick={(e) => { e.stopPropagation(); toggleFavorite(listing.id); }}
+                style={{ cursor: 'pointer', fontSize: '18px', color: '#FFB400' }}
+              >
+                {isFavorite(listing.id) ? <AiFillStar /> : <AiOutlineStar />}
+              </span>
+            )}
+          </TableBuilderColumn>
           <TableBuilderColumn header="거래">
             {(listing: Listing) => (
               <Tag closeable={false} kind={listing.tradeType === 'sale' ? KIND.accent : KIND.warning} hierarchy={HIERARCHY.secondary}

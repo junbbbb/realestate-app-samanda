@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import 'pretendard/dist/web/variable/pretendardvariable.css';
+import './globals.css';
 import StyletronProvider from '@/components/StyletronProvider';
 import Sidebar from '@/components/Navigation';
 import LayoutMain from '@/components/LayoutMain';
@@ -16,16 +16,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="ko">
-      <head />
-      <body
-        style={{
-          margin: 0,
-          fontFamily:
-            '"Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", sans-serif',
-          backgroundColor: '#f8f9fa',
-          minWidth: '1280px',
-        }}
-      >
+      <head></head>
+      <body>
         <StyletronProvider>
           <Sidebar />
           <LayoutMain>{children}</LayoutMain>
